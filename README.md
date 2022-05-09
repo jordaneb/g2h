@@ -1,3 +1,13 @@
+# g2h
+In the absence of the Github and Heroku integration this allows you to do deploys similarly to how you could do them in the Heroku dashboard.
+
+All you need is a GitHub Personal Access Token, Heroku API Key and `curl` on your PATH.
+
+Once configured a deployment can be done like this:
+```
+g2h yourorg/yourepo your-branch your-heroku-app
+```
+
 # Installation
 Download `g2h` and put it on your PATH. Make sure it is executable.
 
