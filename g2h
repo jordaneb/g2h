@@ -1,0 +1,68 @@
+
+github_repo="$1"
+git_branch="$2"
+heroku_app="$3"
+surplus_argument="$4"
+github_token="$G2H_GITHUB_TOKEN"
+heroku_token="$G2H_HEROKU_TOKEN"
+
+if [[ -z "$(which curl)" ]]; then
+  echo "Could not find curl on your PATH. Please install it."
+  exit 1;
+fi
+
+if [ -z "$github_token" ] || [ -z "$heroku_token" ]; then
+  echo "G2H_GITHUB_TOKEN and G2H_HEROKU_TOKEN must both be set."
+  exit 1;
+fi
+
+if [ -z "$github_repo" ] || [ -z "$git_branch" ] || [ -z "$heroku_app" ]; then
+  echo "Not enough arguments. Usage: g2h {github_repo} {git_branch} {heroku_app}"
+  echo "Example: g2h git/git master my-heroku-app"
+  exit 1;
+fi
+
+if [ -n "$4" ]; then
+  echo "You provided too many arguments. Run g2h without any arguments to see usage."
+  exit 1;
+fi
+
+
+read -p "You want to deploy the branch $git_branch from the GitHub repo $github_repo to the Heroku app $heroku_app. Answer (y) to confirm or anything else to cancel: " -n 1
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+  echo "Deployment Cancelled."
+  exit 1;
+fi
+
+
+echo "I am fetching a GitHub archive URL..."
+github_archive_response_headers=$(curl \
+  --dump-header - \
+  --no-progress-meter \
+  --header "Authorization: Bearer $G2H_GITHUB_TOKEN" \
+  "https://api.github.com/repos/$github_repo/tarball/$git_branch")
+
+github_codeload_url=$(echo "$github_archive_response_headers" | grep location | awk -F '[  ]' '{ print $2 }' | sed 's/\r//')
+
+echo "I am telling Heroku to deploy the branch..."
+heroku_post_data=$(cat <<EOF
+{
+  "source_blob": {
+    "url": "$github_codeload_url"
+  }
+}
+EOF
+)
+
+curl "https://api.heroku.com/apps/$heroku_app/builds" \
+  --request POST \
+  --header "Authorization: Bearer $G2H_HEROKU_TOKEN" \
+  --header "Content-Type: application/json" \
+  --header "Accept: application/vnd.heroku+json; version=3" \
+  --data "$heroku_post_data"
+
+echo
+echo "Success. You can monitor the deployment from the Heroku dashbord. https://dashboard.heroku.com/apps/$heroku_app_name"
+echo
