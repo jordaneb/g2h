@@ -50,7 +50,8 @@ echo "I am telling Heroku to deploy the branch..."
 heroku_post_data=$(cat <<EOF
 {
   "source_blob": {
-    "url": "$github_codeload_url"
+    "url": "$github_codeload_url",
+    "version": "$git_branch"
   }
 }
 EOF
