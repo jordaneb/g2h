@@ -65,5 +65,5 @@ curl "https://api.heroku.com/apps/$heroku_app/builds" \
   --data "$heroku_post_data"
 
 echo
-echo "Success. You can monitor the deployment from the Heroku dashbord. https://dashboard.heroku.com/apps/$heroku_app_name"
+echo "Success. You can monitor the deployment from the Heroku dashbord. https://dashboard.heroku.com/apps/$heroku_app"
 echo
